@@ -22,9 +22,21 @@ public class UserDao {
 		this.dataSoucre = dataSource;
 	}
 
-	public void add(User user) throws ClassNotFoundException, SQLException {
+	public void add(final User user) throws ClassNotFoundException, SQLException {
+			 class AddStatement implements StatementStrategy {
 
-		StatementStrategy st = new AddStatement(user);
+				public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+					PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?,?,?)");
+					
+					ps.setString(1, user.getId());
+					ps.setString(2, user.getName());
+					ps.setString(3, user.getPassword());
+				
+					return ps;
+				}
+			}
+			 
+		StatementStrategy st = new AddStatement();
 		jdbcContextWithStatementStrategy(st);
 	}
 
