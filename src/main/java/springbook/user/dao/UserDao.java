@@ -24,20 +24,8 @@ public class UserDao {
 
 	public void add(User user) throws ClassNotFoundException, SQLException {
 
-		Connection c = this.dataSoucre.getConnection();
-		
-		// 인터페이스에 정의된 메소드를 사용하므로 클래스가 바뀌다고 해도 메소드 이름이 변경될 걱정은 없다.
-		
-		
-		PreparedStatement ps = c.prepareStatement(
-				"insert into users(id, name, password) values(?,?,?)");
-				ps.setString(1, user.getId());
-				ps.setString(2, user.getName());
-				ps.setString(3, user.getPassword());
-		ps.executeUpdate();
-		
-		ps.close();
-		c.close();
+		StatementStrategy st = new AddStatement(user);
+		jdbcContextWithStatementStrategy(st);
 	}
 
 	
