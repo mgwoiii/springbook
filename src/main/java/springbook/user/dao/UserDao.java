@@ -21,24 +21,24 @@ public class UserDao {
 	public void setDataSource(DataSource dataSource) {
 		this.dataSoucre = dataSource;
 	}
-
-	public void add(final User user) throws ClassNotFoundException, SQLException {
-			 class AddStatement implements StatementStrategy {
-
-				public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-					PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?,?,?)");
+	
+	public void add(final User user) throws SQLException{
+		jdbcContextWithStatementStrategy(
+				new StatementStrategy() {
+					public PreparedStatement makePreparedStatement(Connection c) throws SQLException{
+						PreparedStatement ps = 
+								c.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
+						ps.setString(1, user.getId());
+						ps.setString(2, user.getName());
+						ps.setString(3, user.getPassword());
+						
+						return ps;
 					
-					ps.setString(1, user.getId());
-					ps.setString(2, user.getName());
-					ps.setString(3, user.getPassword());
-				
-					return ps;
+					}
 				}
-			}
-			 
-		StatementStrategy st = new AddStatement();
-		jdbcContextWithStatementStrategy(st);
+				);
 	}
+
 
 	
 	public User get(String id) throws ClassNotFoundException, SQLException {
@@ -73,20 +73,27 @@ public class UserDao {
 	
 	public void deleteAll() throws SQLException{
 		
-		StatementStrategy st = new DeleteAllStatement();
+		//StatementStrategy st = new DeleteAllStatement();
 		// 선정한 전략 클래스의 오브젝트 생성
 		
-		jdbcContextWithStatementStrategy(st);
+		//jdbcContextWithStatementStrategy(st);
 		// 컨텍스트 호출 전략 오브젝트 전달
 		
+		jdbcContextWithStatementStrategy(
+				new StatementStrategy() {
+					public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+						return c.prepareStatement("delete from users");
+					} 
+				}
+				);
 	}
 	
-	private PreparedStatement makeStatement(Connection c) throws SQLException {
-		PreparedStatement ps;
-		ps= c.prepareStatement("delete from users");
-		
-		return ps;
-	}
+//	private PreparedStatement makeStatement(Connection c) throws SQLException {
+//		PreparedStatement ps;
+//		ps= c.prepareStatement("delete from users");
+//		
+//		return ps;
+//	}
 	 
 	public int getCount() throws SQLException {
 		
