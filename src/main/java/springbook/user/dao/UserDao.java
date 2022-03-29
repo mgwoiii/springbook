@@ -19,11 +19,19 @@ public class UserDao {
 	private DataSource dataSoucre;
 
 	public void setDataSource(DataSource dataSource) {
+		
+		this.jdbcContext = new JdbcContext();
+		
+		this.jdbcContext.setDataSource(dataSource);
+		
 		this.dataSoucre = dataSource;
 	}
 	
+	private JdbcContext jdbcContext;
+	
+	
 	public void add(final User user) throws SQLException{
-		jdbcContextWithStatementStrategy(
+		this.jdbcContext.workWithStatementStrategy(
 				new StatementStrategy() {
 					public PreparedStatement makePreparedStatement(Connection c) throws SQLException{
 						PreparedStatement ps = 
@@ -72,28 +80,11 @@ public class UserDao {
 	}
 	
 	public void deleteAll() throws SQLException{
-		
-		//StatementStrategy st = new DeleteAllStatement();
-		// 선정한 전략 클래스의 오브젝트 생성
-		
-		//jdbcContextWithStatementStrategy(st);
-		// 컨텍스트 호출 전략 오브젝트 전달
-		
-		jdbcContextWithStatementStrategy(
-				new StatementStrategy() {
-					public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-						return c.prepareStatement("delete from users");
-					} 
-				}
-				);
+		this.jdbcContext.executeSql("delete from users");
 	}
 	
-//	private PreparedStatement makeStatement(Connection c) throws SQLException {
-//		PreparedStatement ps;
-//		ps= c.prepareStatement("delete from users");
-//		
-//		return ps;
-//	}
+
+	
 	 
 	public int getCount() throws SQLException {
 		

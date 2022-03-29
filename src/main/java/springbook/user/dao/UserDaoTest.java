@@ -38,7 +38,7 @@ public class UserDaoTest {
 	
 	
 	@Before
-	public void () {
+	public void setUp() {
 		
 
 	

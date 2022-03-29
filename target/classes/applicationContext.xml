@@ -16,4 +16,8 @@
 		<property name="dataSource" ref="dataSource"></property>
 	
 	</bean>
+	
+	<bean id = "jdbcContext" class = "springbook.user.dao.JdbcContext">
+		<property name="dataSource" ref="dataSource"></property>	
+	</bean>
 </beans>
