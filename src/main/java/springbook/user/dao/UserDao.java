@@ -10,19 +10,23 @@ import javax.sql.DataSource;
 
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import springbook.user.domain.User;
 
 public class UserDao {
 	
 	private DataSource dataSoucre;
+	
+	private JdbcTemplate jdbcTemplate;
 
 	public void setDataSource(DataSource dataSource) {
 		
-		this.jdbcContext = new JdbcContext();
-		
-		this.jdbcContext.setDataSource(dataSource);
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		
 		this.dataSoucre = dataSource;
 	}
@@ -31,20 +35,9 @@ public class UserDao {
 	
 	
 	public void add(final User user) throws SQLException{
-		this.jdbcContext.workWithStatementStrategy(
-				new StatementStrategy() {
-					public PreparedStatement makePreparedStatement(Connection c) throws SQLException{
-						PreparedStatement ps = 
-								c.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
-						ps.setString(1, user.getId());
-						ps.setString(2, user.getName());
-						ps.setString(3, user.getPassword());
-						
-						return ps;
-					
-					}
-				}
-				);
+		
+		this.jdbcTemplate.update("insert into users(id, name, password) values (?, ?, ?)",	
+		user.getId(), user.getName(), user.getPassword());
 	}
 
 
@@ -79,59 +72,15 @@ public class UserDao {
 		return user;
 	}
 	
-	public void deleteAll() throws SQLException{
-		this.jdbcContext.executeSql("delete from users");
+	public void deleteAll(){
+		this.jdbcTemplate.update("delete from users");
 	}
 	
 
 	
 	 
-	public int getCount() throws SQLException {
-		
-		Connection c =  null;
-		PreparedStatement ps =  null;
-		ResultSet rs = null;
-		
-		try {
-			c = dataSoucre.getConnection();
-			ps = c.prepareStatement("select count(*) from users");
-		
-			rs = ps.executeQuery();
-			rs.next();
-			
-			return rs.getInt(1);
-		
-		}catch(SQLException e) {
-			throw e;
-		}finally {
-			
-			if(rs != null) {
-				try {
-					rs.close();
-				}catch(SQLException e) {
-					
-				}
-			}
-
-			if(ps != null) {
-				try {
-					ps.close();
-				}catch(SQLException e) {
-					
-				}
-			}
-			
-			if(c != null) {
-				try {
-					c.close();
-				}catch(SQLException e) {
-					
-				}
-			}
-		}
-		
-		
-
+	public int getCount() {
+		return this.jdbcTemplate.queryForInt("select count(*) from users");
 	}
 	
 	public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException{
