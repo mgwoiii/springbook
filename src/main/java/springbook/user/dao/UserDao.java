@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -15,24 +16,32 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 
 import springbook.user.domain.User;
 
 public class UserDao {
-	
-	private DataSource dataSoucre;
-	
-	private JdbcTemplate jdbcTemplate;
 
 	public void setDataSource(DataSource dataSource) {
 		
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 		
-		this.dataSoucre = dataSource;
 	}
 	
-	private JdbcContext jdbcContext;
-	
+	private JdbcTemplate jdbcTemplate;
+
+	private RowMapper<User> userMapper =
+			new RowMapper<User>() {
+				public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+					User user = new User();
+					user.setId(rs.getString("id"));
+					user.setName(rs.getString("name"));
+					user.setPassword(rs.getString("password"));
+					
+					return user;
+				}
+			};
+
 	
 	public void add(final User user) throws SQLException{
 		
@@ -42,34 +51,10 @@ public class UserDao {
 
 
 	
-	public User get(String id) throws ClassNotFoundException, SQLException {
-			
-		Connection c = this.dataSoucre.getConnection();
-
-		PreparedStatement ps = c.prepareStatement(
-				"select * from users where id = ?");
-		
-		ps.setString(1, id);
-		
-		ResultSet rs = ps.executeQuery();
-		
-		User user = null;
-		
-		if(rs.next()) {
-		
-			user = new User();
-			user.setId(rs.getString("id"));
-			user.setName(rs.getString("name"));
-			user.setPassword(rs.getString("password"));
-		}
-		
-		rs.close();
-		ps.close();
-		c.close();
-		
-		if(user == null) throw new EmptyResultDataAccessException(1);
-		
-		return user;
+	public User get(String id) {
+		return this.jdbcTemplate.queryForObject("select * from users where id = ? ",
+				new Object[] {id},  // sql에 바인딩 할 파라미터 값, 가변인자 대신 배열을 사용한다.
+				this.userMapper);
 	}
 	
 	public void deleteAll(){
@@ -80,26 +65,13 @@ public class UserDao {
 	
 	 
 	public int getCount() {
-		return this.jdbcTemplate.queryForInt("select count(*) from users");
+		return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
 	}
 	
-	public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException{
-		
-		Connection c = null;
-		PreparedStatement ps = null;
-		
-		try {
-			c = dataSoucre.getConnection();
-			ps = stmt.makePreparedStatement(c);
-			ps.executeUpdate();
-		}catch(SQLException e) {
-			throw e;
-		} finally {
-			if ( ps != null) { try{ ps.close(); }catch(SQLException e) {}}
-			if ( c != null) { try{ c.close(); }catch(SQLException e) {}}
-			
-		}
-		
+	
+	public List<User> getAll(){
+		return this.jdbcTemplate.query("select * from users order by id", 
+				this.userMapper);
 	}
 }
 
