@@ -1,6 +1,7 @@
 package springbook.user.dao;
 
 import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.assertThat;
 
 import java.sql.SQLException;
@@ -14,24 +15,27 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
 
+import junit.framework.TestCase;
 import springbook.user.domain.User;
 
+@WebAppConfiguration 
 @RunWith(SpringJUnit4ClassRunner.class)
 // 스프링의 테스트 컨텍스트 프레임워크의 jUnit 확장기능 지정
 @ContextConfiguration(locations="/test-applicationContext.xml")
-public class UserDaoTest {
+//@ContextConfiguration("classpath:com/itcast/review/test-applicationContext.xml")
+//@ContextConfiguration("classpath:/src/main/java/test-applicationContext.xml")
+public class UserDaoJDBCTest extends TestCase{
 
-	@Autowired
-	private ApplicationContext context;
-	
-	@Autowired
-	UserDao dao; 
+	@Autowired UserDao dao; 
+	@Autowired DataSource dataSource;
 	
 	private User user1;
 	private User user2;
@@ -40,18 +44,12 @@ public class UserDaoTest {
 	
 	@Before
 	public void setUp() {
-		
 
-	
-		this.dao = this.context.getBean("userDao", UserDao.class);
-		
 		this.user1 = new User("gyumm", "박성철", "springno1");
 		this.user2 = new User("leegg", "이길원", "springno2");
 		this.user3 = new User("bumjin", "박범진", "springno3");
 		
 
-		System.out.println(this.context);
-		System.out.println(this);
 	}
 	
 	@Test
@@ -118,6 +116,13 @@ public class UserDaoTest {
 		
 		
 		
+	}
+	
+	@Test(expected=DataAccessException.class)
+	public void duplciateKey() {
+		dao.deleteAll();
+		dao.add(user1);
+		dao.add(user1);
 	}
 	
 	private void checkSameUser(User user1, User user2) {

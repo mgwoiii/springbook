@@ -11,8 +11,8 @@ import org.springframework.jdbc.datasource.SimpleDriverDataSource;
 public class DaoFactory {
 
 	@Bean // 오브젝트 생성을 담당하는 IoC용 메소드라는 표시
-	public UserDao userDao() {
-		UserDao userDao = new UserDao();
+	public UserDaoJDBC userDao() {
+		UserDaoJDBC userDao = new UserDaoJDBC();
 		userDao.setDataSource(dataSource());
 		return userDao;
 	}
