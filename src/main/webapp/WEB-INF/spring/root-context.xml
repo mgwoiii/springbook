@@ -10,8 +10,12 @@
 		<property name="password" value="1234" />
 	</bean>
 	
+	<bean id="userService" class="springbook.user.service.UserService">
+		<property name="userDao" ref="userDao"></property>
+	</bean>
+	
 	<!-- Root Context: defines shared resources visible to all other web components -->
-	<bean id = "userDao" class = "springbook.user.dao.UserDaoJDBC">
+	<bean id="userDao" class = "springbook.user.dao.UserDaoJdbc">
 		<property name="dataSource" ref="dataSource"></property>
 	
 	</bean>
